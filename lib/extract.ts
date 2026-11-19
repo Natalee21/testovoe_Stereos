@@ -94,6 +94,12 @@ function matchField(document: ParsedDocument, config: FieldConfig): ExtractedFie
       return citationFor(document, match.index, match.index + match[0].length);
     })
     .find((citation): citation is Citation => citation != null);
+  const relatedNotes = config.relatedPatterns?.flatMap(({ pattern, label }) => {
+    const match = text.match(pattern);
+    if (!match || match.index == null) return [];
+    const citation = citationFor(document, match.index, match.index + match[0].length);
+    return citation ? [{ label, citation }] : [];
+  });
 
   return {
     id: config.id,
@@ -101,6 +107,7 @@ function matchField(document: ParsedDocument, config: FieldConfig): ExtractedFie
     value: null,
     needsReview: true,
     citations: absent ? [absent] : [],
+    relatedNotes,
   };
 }
 

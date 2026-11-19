@@ -52,4 +52,21 @@ describe("parse", () => {
     const amendmentClause = byName["02_amendment_signed.txt"].paragraphs.find((paragraph) => paragraph.clause === "2");
     expect(amendmentClause?.text).toContain("30.04.2026");
   });
+
+  it("отделяет пункты внутри строки и цитату суммы STN-103 от пункта о лимите", () => {
+    const stn103 = byName["04_contract.txt"];
+    const clause21 = stn103.paragraphs.find((paragraph) => paragraph.clause === "2.1");
+    const clause22 = stn103.paragraphs.find((paragraph) => paragraph.clause === "2.2");
+    expect(clause21).toBeTruthy();
+    expect(clause22).toBeTruthy();
+    expect(clause21?.index).not.toBe(clause22?.index);
+    expect(clause21?.text).not.toContain("600 000");
+    const amountEvidence = clause21?.text.match(/Числовое значение стоимости в тексте договора не указано\./)?.[0];
+    expect(amountEvidence).toBe("Числовое значение стоимости в тексте договора не указано.");
+
+    const header = byName["01_contract.txt"].paragraphs;
+    const dateLine = header.find((paragraph) => paragraph.text.startsWith("Дата:"));
+    const statusLine = header.find((paragraph) => paragraph.text.startsWith("Статус:"));
+    expect(dateLine?.index).not.toBe(statusLine?.index);
+  });
 });

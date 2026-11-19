@@ -28,7 +28,13 @@ export function EvidenceLink({ citation, onSource }: { citation: Citation | null
 }
 
 function FieldValue({ field, onSource }: { field: ResolvedField | undefined; onSource: Props["onSource"] }) {
-  if (!field || field.value == null) return <><span>нет данных</span><EvidenceLink citation={field?.citation ?? null} onSource={onSource} /></>;
+  if (!field || field.value == null) return <>
+    <span>нет данных</span>
+    {field?.citation && <div className="mt-1 text-xs text-stone-600">Причина отсутствия значения:<EvidenceLink citation={field.citation} onSource={onSource} /></div>}
+    {field?.relatedNotes.map((note, index) => <div key={`${note.label}-${index}`} className="mt-2 text-xs text-stone-700">
+      <span className="font-medium">{note.label}:</span><EvidenceLink citation={note.citation} onSource={onSource} />
+    </div>)}
+  </>;
   const shown = field.id === "amount" ? amount(field.value) : field.id === "deliveryDate" ? date(field.value) : String(field.value);
   const previous = field.previous ? (field.id === "amount" ? amount(field.previous.value) : date(field.previous.value)) : null;
   return <>
@@ -77,7 +83,6 @@ export function ResultsTable({ contracts, onSource }: Props) {
               <td className="px-3 py-3"><FieldValue field={delivery} onSource={onSource} /></td>
               <td className="px-3 py-3">
                 <span className="rounded bg-stone-100 px-2 py-1 text-xs">{contract.status}</span>
-                {contract.fields.some((field) => field.needsReview) && <span className="mt-2 block rounded bg-amber-100 px-2 py-1 text-xs">требует проверки</span>}
                 {contract.hasUnagreedChange && <span className="mt-2 block rounded bg-orange-100 px-2 py-1 text-xs">есть несогласованное изменение</span>}
                 <Pending documents={[...contract.proposed, ...contract.scheduled]} onSource={onSource} />
               </td>

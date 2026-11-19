@@ -41,6 +41,7 @@ export type ExtractedField = {
   value: number | string | null;
   needsReview: boolean;
   citations: Citation[];
+  relatedNotes?: { label: string; citation: Citation }[];
 };
 
 export type FieldSource = Citation & {
@@ -54,6 +55,7 @@ export type ResolvedField = {
   value: number | string | null;
   needsReview: boolean;
   citation: FieldSource | null;
+  relatedNotes: { label: string; citation: FieldSource }[];
   previous: { value: number | string; citation: FieldSource } | null;
   extraCitations: FieldSource[];
 };

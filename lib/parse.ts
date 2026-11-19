@@ -72,23 +72,47 @@ function paragraphsOf(raw: string): Paragraph[] {
   let searchFrom = 0;
 
   for (const chunk of chunks) {
-    const start = raw.indexOf(chunk, searchFrom);
-    if (start < 0) {
+    const chunkStart = raw.indexOf(chunk, searchFrom);
+    if (chunkStart < 0) {
       continue;
     }
-    searchFrom = start + chunk.length;
-    const text = chunk.trim();
-    if (!text) {
-      continue;
+    searchFrom = chunkStart + chunk.length;
+
+    const boundaries = new Set<number>([0]);
+    const clausePattern = /\d+(?:\.\d+)+\.[ \t]+/g;
+    for (const match of chunk.matchAll(clausePattern)) {
+      const index = match.index;
+      if (index == null || index === 0) continue;
+      const prefix = chunk.slice(0, index).trimEnd();
+      if (/[.!?;:]$/.test(prefix)) boundaries.add(index);
     }
-    const clauseMatch = text.match(/^(\d+(?:\.\d+)*)\.\s/);
-    paragraphs.push({
-      index: paragraphs.length,
-      clause: clauseMatch?.[1] ?? null,
-      text,
-      start,
-      end: start + chunk.length,
-    });
+
+    const headingPattern = /(?:^|\n)[ \t]*(?:Дата|Статус):/g;
+    for (const match of chunk.matchAll(headingPattern)) {
+      const heading = match[0].search(/(?:Дата|Статус):/);
+      const index = match.index == null ? -1 : match.index + heading;
+      if (index > 0) boundaries.add(index);
+    }
+
+    const starts = [...boundaries].sort((left, right) => left - right);
+    for (let i = 0; i < starts.length; i += 1) {
+      const relativeStart = starts[i];
+      const relativeEnd = starts[i + 1] ?? chunk.length;
+      const rawPart = chunk.slice(relativeStart, relativeEnd);
+      const leading = rawPart.search(/\S/);
+      if (leading < 0) continue;
+      const text = rawPart.trim();
+      const start = chunkStart + relativeStart + leading;
+      const end = start + text.length;
+      const clauseMatch = text.match(/^(\d+(?:\.\d+)*)\.\s/);
+      paragraphs.push({
+        index: paragraphs.length,
+        clause: clauseMatch?.[1] ?? null,
+        text,
+        start,
+        end,
+      });
+    }
   }
 
   return paragraphs;

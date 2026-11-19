@@ -7,6 +7,7 @@ export type FieldConfig = {
   showInTable: boolean;
   patterns: RegExp[];
   absentPatterns?: RegExp[];
+  relatedPatterns?: { pattern: RegExp; label: string }[];
 };
 
 const groupedNumber = "(\\d{1,3}(?: \\d{3})+|\\d+)";
@@ -30,6 +31,10 @@ export const fieldConfigs: FieldConfig[] = [
       new RegExp(`изменить общую стоимость поставки на\\s+${groupedNumber}`, "i"),
     ],
     absentPatterns: [/Числовое значение стоимости в тексте договора не указано/],
+    relatedPatterns: [{
+      pattern: /Лимит закупки[^.\n]*\. Этот лимит не является согласованной стоимостью договора\./,
+      label: "не является суммой договора",
+    }],
   },
   {
     id: "deliveryDate",

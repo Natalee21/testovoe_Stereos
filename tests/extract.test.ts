@@ -32,7 +32,15 @@ describe("extract", () => {
     expect(amount?.value).toBeNull();
     expect(amount?.needsReview).toBe(true);
     expect(amount?.citations[0]?.quote).toContain("не указано");
+    expect(amount?.citations[0]?.quote).not.toContain("600 000");
+    expect(amount?.citations[0]?.clause).toBe("2.1");
     expect(JSON.stringify(amount)).not.toContain("600000");
+    expect(amount?.relatedNotes).toEqual([
+      expect.objectContaining({
+        label: "не является суммой договора",
+        citation: expect.objectContaining({ fileName: "04_contract.txt", quote: expect.stringContaining("600 000") }),
+      }),
+    ]);
   });
 
   it("читает новую редакцию подписанного ДС и предложение проекта", () => {

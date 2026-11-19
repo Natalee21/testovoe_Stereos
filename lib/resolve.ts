@@ -36,6 +36,7 @@ function emptyField(config: (typeof fieldConfigs)[number]): ResolvedField {
     value: null,
     needsReview: true,
     citation: null,
+    relatedNotes: [],
     previous: null,
     extraCitations: [],
   };
@@ -48,6 +49,10 @@ function fieldFromExtraction(document: ParsedDocument, field: ExtractedField): R
     value: field.value,
     needsReview: field.needsReview || field.value == null,
     citation: sourceOf(document, field),
+    relatedNotes: (field.relatedNotes ?? []).map(({ label, citation }) => ({
+      label,
+      citation: { ...citation, amendmentNumber: document.amendmentNumber, documentKind: document.kind },
+    })),
     previous: null,
     extraCitations: field.citations.slice(1).map((citation) => ({
       ...citation,
@@ -93,6 +98,10 @@ function applyField(current: ResolvedField, document: ParsedDocument, field: Ext
   }
   current.value = field.value;
   current.citation = nextSource;
+  current.relatedNotes = (field.relatedNotes ?? []).map(({ label, citation }) => ({
+    label,
+    citation: { ...citation, amendmentNumber: document.amendmentNumber, documentKind: document.kind },
+  }));
   current.needsReview = false;
   current.extraCitations = [];
 }
@@ -101,6 +110,7 @@ function markConflict(current: ResolvedField, documents: ParsedDocument[]): void
   current.needsReview = true;
   current.value = null;
   current.previous = null;
+  current.relatedNotes = [];
   current.extraCitations = documents.flatMap((document) => {
     const field = extractFields(document).find((item) => item.id === current.id);
     if (!field) {
