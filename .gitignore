@@ -1,0 +1,6 @@
+_private/
+docs/task.md
+node_modules/
+.next/
+.env*
+.DS_Store
